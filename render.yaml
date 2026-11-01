@@ -1,0 +1,15 @@
+# Render 蓝图配置（一键部署）：New + → Blueprint → 选本仓库 → Apply
+# 免费档、Docker 构建、自动部署（git push 后自动重新发布）
+services:
+  - type: web
+    name: quant-studio
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 8000

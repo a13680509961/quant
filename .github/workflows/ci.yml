@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 安装依赖
+        run: pip install numpy pandas
+      - name: 引擎自检（数据/策略/回测/存储/杠杆做空/指标）
+        run: python app.py --selftest

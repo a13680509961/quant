@@ -368,8 +368,9 @@ def selftest():
 
 def main():
     parser = argparse.ArgumentParser(description="量化应用 Web 服务")
-    parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--host", default="127.0.0.1")
+    # 云平台（Render/Koyeb/HF 等）会通过环境变量 PORT 指定端口
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
+    parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
     parser.add_argument("--no-browser", action="store_true")
     parser.add_argument("--selftest", action="store_true")
     args = parser.parse_args()
