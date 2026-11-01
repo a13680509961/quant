@@ -1,5 +1,8 @@
 # 📈 量化分析工作台 · Quant Studio
 
+![CI](https://github.com/你的用户名/quant-app/actions/workflows/ci.yml/badge.svg)
+（推送后把「你的用户名」替换成自己的 GitHub 用户名即可显示 CI 徽章）
+
 一个**多市场通用、零第三方依赖、开箱即用**的量化 Web 应用：数据获取与存储、策略回测、实时信号盯盘、可视化看板，一次搞定。
 
 - 后端：Python **纯标准库** `http.server`（无需安装 FastAPI/Flask）
