@@ -377,6 +377,24 @@ python app.py --host 0.0.0.0 --port 8000 --no-browser
 - 建议：用完即关（Ctrl+C）；不要 7×24 挂公网；不要把该机器用于存放敏感数据。
 - 如需长期对外使用，建议后续增加访问密码/Token 验证（可在此基础上扩展）。
 
+## 🐙 GitHub 开源与部署联动
+
+项目已初始化 git 仓库（main 分支），并配好 `.gitignore`、MIT `LICENSE`、GitHub Actions 自动测试（每次推送自动跑引擎自检）。
+
+**推送到 GitHub（二选一）：**
+1. 双击 **`push_github.bat`**：输入你的仓库地址，自动关联并推送（首次会弹浏览器登录授权）；
+2. 或手动执行：
+   ```
+   git remote add origin https://github.com/你的用户名/quant-app.git
+   git push -u origin main
+   ```
+
+**部署联动**：推送到 GitHub 后，云服务器部署从"上传文件"简化为两行：
+```bash
+git clone https://github.com/你的用户名/quant-app.git /opt/quant-app
+cd /opt/quant-app && bash deploy/deploy.sh
+```
+
 ## 📁 项目结构
 
 ```
