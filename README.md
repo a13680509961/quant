@@ -270,10 +270,12 @@ A股标的下，K 线图下方自动展示「两融资金」双轴图：**融资
 
 什么都没有（无服务器/无域名/无绑卡）就用这个——只需一个邮箱，**用你刚推的 GitHub 仓库直接部署**：
 
-1. 到 <https://www.koyeb.com> 用邮箱注册（不需要银行卡）；
-2. **Create App** → 选 **GitHub** → 授权并选择 `quant-app` 仓库；
-3. Koyeb 自动识别项目里的 `deploy/Dockerfile`（端口 8000）→ 免费档（Free）→ **Deploy**；
-4. 一分钟完成，得到**固定地址** `https://quant-studio-你的用户名.koyeb.app`——
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=github.com%2Fa13680509961%2Fquant&branch=main&name=quant-studio&builder=dockerfile&ports=8000%3Bhttp%3B%2F&instance_type=free)
+
+1. 到 <https://www.koyeb.com> 用邮箱注册（不需要银行卡），并**登录**；
+2. 点上方 **Deploy to Koyeb** 按钮（或复制该链接打开）——所有参数已预填：GitHub 仓库、Dockerfile、端口 8000、免费档；
+3. 页面确认后点 **Deploy**，等待构建 2~4 分钟；
+4. 得到**固定地址** `https://quant-studio-你的用户名.koyeb.app`——
    7×24 在线、不睡眠、崩溃自动重启，任意设备任意网络打开即用；
 5. 以后更新：本地 `git push` → Koyeb 自动重新部署（或控制台手动 Redeploy）。
 
