@@ -1,0 +1,12 @@
+# Koyeb 免费档部署配置（可选）
+# Koyeb 控制台选择 GitHub 仓库部署时会自动识别 deploy/Dockerfile，
+# 此文件用于「Deploy to Koyeb」按钮或 CLI 部署，字段以官网最新文档为准。
+name: quant-studio
+service:
+  name: quant-studio
+  ports:
+    - port: 8000
+      protocol: http
+  docker:
+    dockerfile: deploy/Dockerfile
+  instance_type: free
