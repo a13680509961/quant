@@ -21,3 +21,6 @@ venv/
 # 系统
 Thumbs.db
 .DS_Store
+
+# CI 工作流暂由网页端添加（推送需 workflow 权限）
+.github/
