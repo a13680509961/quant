@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 运行时数据（缓存/日志/临时隧道地址，可再生）
+data/*.db
+data/*.json
+data/*.log
+public_url.txt
+*.log
+
+# 本地工具
+tools/
+
+# 虚拟环境
+venv/
+.venv/
+.dsh/
+
+# 系统
+Thumbs.db
+.DS_Store

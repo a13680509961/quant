@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<canvas id="cv" style="width:800px;height:400px;display:block"></canvas>
+<div id="out"></div>
+<script src="web/charts.js"></script>
+<script>
+"use strict";
+const n = 500;
+const dates = [], open = [], high = [], low = [], close = [], volume = [];
+let p = 100;
+for (let i = 0; i < n; i++) {
+  p *= (1 + Math.sin(i / 30) * 0.01 + 0.001);
+  dates.push("2024-01-" + String(i % 28 + 1).padStart(2, "0"));
+  open.push(+(p * 0.999).toFixed(3));
+  high.push(+(p * 1.01).toFixed(3));
+  low.push(+(p * 0.99).toFixed(3));
+  close.push(+p.toFixed(3));
+  volume.push(100000 + i);
+}
+const chart = new CandlestickChart(document.getElementById("cv"));
+chart.setData({ dates, open, high, low, close, volume }, [], [], []);
+chart.count = 120;
+chart.offset = n - 120;
+chart.render();
+
+const b = chart._bands();
+const oy = b.overview.y0 + b.overview.h / 2;
+const x1 = b.plotX + b.plotW * 0.25;
+const x2 = b.plotX + b.plotW * 0.55;
+const rect = chart.canvas.getBoundingClientRect();
+const cv = chart.canvas;
+const ev = (type, x, y) =>
+  cv.dispatchEvent(new MouseEvent(type, { clientX: rect.left + x, clientY: rect.top + y, bubbles: true }));
+const wev = (type, x, y) =>
+  window.dispatchEvent(new MouseEvent(type, { clientX: rect.left + x, clientY: rect.top + y, bubbles: true }));
+
+const before = chart.offset;
+// 1) 点击全景条：窗口居中到点击位置（向左拉）
+ev("mousedown", x1, oy); wev("mouseup", x1, oy);
+const afterClick = chart.offset;
+// 2) 按住拖动：窗口左右移动
+let hits = 0;
+window.__err = "";
+window.__seenX = null;
+window.addEventListener("error", (e) => { window.__err = e.message; });
+window.addEventListener("mousemove", (e) => { if (hits === 0) window.__seenX = e.clientX; hits++; });
+ev("mousedown", x1, oy);
+const dragState1 = chart._drag ? JSON.stringify({ x: chart._drag.x, offset: chart._drag.offset, overview: chart._drag.overview }) : "null";
+wev("mousemove", x2, oy);
+const afterMove = chart.offset;
+const cursor = chart.canvas.style.cursor;
+const dragState2 = chart._drag ? JSON.stringify({ x: chart._drag.x, offset: chart._drag.offset }) : "null";
+wev("mouseup", x2, oy);
+const afterDrag = chart.offset;
+
+document.getElementById("out").textContent =
+  "before=" + before + " afterClick=" + afterClick + " afterMove=" + afterMove +
+  " afterDrag=" + afterDrag + " hits=" + hits + " cursor=" + cursor + " err=" + window.__err +
+  " seenX=" + window.__seenX + " rectLeft=" + rect.left +
+  " panDbg=" + JSON.stringify(chart.__panDebug || null) +
+  " drag1=" + dragState1 + " drag2=" + dragState2 +
+  " count=" + chart.count + " n=" + n;
+document.title = "DRAG_TEST:" + JSON.stringify({ before, afterClick, afterMove, afterDrag, hits, cursor, err: window.__err, seenX: window.__seenX, rectLeft: rect.left, dragState1, dragState2, count: chart.count, n });
+</script>
+</body>
+</html>

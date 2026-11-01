@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>量化分析工作台 · Quant Studio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;📈&lt;/text&gt;&lt;/svg&gt;">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">📈 <span data-i18n="量化分析工作台">Quant Studio</span> <span class="sub">Quant Studio · Multi-market</span></div>
+    <div class="top-right">
+      <div class="lang-switch">
+        <button id="langZh" class="lang-btn" onclick="setLang('zh')">中</button>
+        <button id="langEn" class="lang-btn on" onclick="setLang('en')">EN</button>
+      </div>
+      <div class="live-badge" id="liveBadge"><span class="dot"></span><span id="liveBadgeText" data-i18n="实时盯盘已开启">Live monitor on</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ======================= 左侧控制面板 ======================= -->
+    <aside class="panel">
+      <section>
+        <h2 data-i18n="📡 数据">📡 Data</h2>
+        <label><span data-i18n="数据源">Data source</span>
+          <select id="sourceSel"><option value="synthetic">Synthetic (offline)</option><option value="ashare">A-Shares (CN)</option><option value="futures">CN Futures</option><option value="global_futures">Global Futures</option><option value="fund">Mutual Funds</option><option value="hk">Hong Kong</option><option value="yahoo">Yahoo Finance</option><option value="stooq">Stooq</option></select>
+        </label>
+        <label><span data-i18n="标的代码 / 名称">Symbol / name</span>
+          <span class="suggest-wrap">
+            <input id="symbolInput" list="symbolList" data-i18n-ph="如 600519、贵州茅台、RB0、00700" placeholder="e.g. 600519, AAPL, RB0, 00700" spellcheck="false">
+            <datalist id="symbolList"><option value="SYN:测试股票"></option><option value="SYN:示例ETF"></option><option value="SYN:数字资产"></option></datalist>
+            <div class="suggest" id="symbolSuggest" hidden=""></div>
+          </span>
+          <span class="name-hint" id="symbolName"></span>
+        </label>
+        <label><span data-i18n="周期">Interval</span>
+          <select id="intervalSel">
+            <option value="1d" data-i18n="日线（1d）">Daily (1d)</option>
+            <option value="1h" data-i18n="小时线（1h）">Hourly (1h)</option>
+            <option value="15m" data-i18n="15 分钟（15m）">15 min (15m)</option>
+            <option value="1m" data-i18n="1 分钟（1m）">1 min (1m)</option>
+          </select>
+        </label>
+        <label><span data-i18n="K 线数量">Bars</span>
+          <input type="number" id="limitInput" value="500" min="100" max="2000" step="100">
+        </label>
+      </section>
+
+      <section>
+        <h2 data-i18n="🧠 策略">🧠 Strategy</h2>
+        <label><span data-i18n="策略">Strategy</span>
+          <select id="strategySel"><option value="ma_cross">Dual MA Trend</option><option value="rsi_reversal">RSI Mean Reversion</option><option value="bollinger_revert">Bollinger Mean Reversion</option><option value="macd_trend">MACD Trend</option><option value="breakout">N-day Breakout</option><option value="ma_cross_dual">Dual MA Long/Short</option><option value="rsi_dual">RSI Long/Short</option><option value="bollinger_dual">Bollinger Long/Short</option><option value="macd_dual">MACD Long/Short</option><option value="breakout_dual">Breakout Long/Short</option></select>
+        </label>
+        <div id="paramBox" class="params"><label class="">Fast period<input type="number" data-key="fast" data-type="int" value="5" min="1" max="60" step="1"></label><label class="">Slow period<input type="number" data-key="slow" data-type="int" value="20" min="5" max="120" step="1"></label></div>
+      </section>
+
+      <section>
+        <h2 data-i18n="🤖 AI 生成策略">🤖 AI Strategy</h2>
+        <label><span data-i18n="用一句话描述你的策略">Describe your strategy in one sentence</span>
+          <textarea id="aiPrompt" rows="3" data-i18n-ph="例：5日均线上穿20日均线买入，跌破20日均线卖出，亏损3%止损" placeholder="e.g. Buy when 5-day MA crosses above 20-day MA, sell below, 3% stop-loss"></textarea>
+        </label>
+        <label><span data-i18n="DeepSeek API Key">DeepSeek API Key</span>
+          <input type="password" id="apiKeyInput" data-i18n-ph="sk-...（留空则读环境变量 DEEPSEEK_API_KEY）" placeholder="sk-... (blank = env DEEPSEEK_API_KEY)" autocomplete="off">
+        </label>
+        <button id="aiBtn" class="accent" data-i18n="✨ 生成并回测">✨ Generate &amp; Backtest</button>
+        <div id="aiBox" class="ai-box" hidden=""></div>
+      </section>
+
+      <section>
+        <h2 data-i18n="⚙️ 回测设置">⚙️ Backtest</h2>
+        <label><span data-i18n="初始资金">Initial capital</span>
+          <input type="number" id="capitalInput" value="100000" min="1000" step="10000">
+        </label>
+        <label><span data-i18n="单边手续费率">Fee rate (per side)</span>
+          <input type="number" id="feeInput" value="0.0003" min="0" max="0.01" step="0.0001">
+        </label>
+        <label><span data-i18n="杠杆倍数（两融融资）">Leverage (margin)</span>
+          <input type="number" id="leverageInput" value="1" min="1" max="10" step="0.5">
+        </label>
+        <label><span data-i18n="交易方向">Direction</span>
+          <select id="directionSel">
+            <option value="long" data-i18n="只做多">Long only</option>
+            <option value="short" data-i18n="只做空">Short only</option>
+            <option value="both" data-i18n="多空双向">Both</option>
+          </select>
+        </label>
+        <div class="hint-mini" data-i18n="只做空时：多空策略只取空头信号；只做多策略自动反转信号（空仓→开空，持有→平空）">Short-only: dual strategies keep only short signals; long-only strategies are inverted (flat→short, holding→cover)</div>
+        <label><span data-i18n="融资年利率 %">Margin interest %/yr</span>
+          <input type="number" id="interestInput" value="8.35" min="0" max="30" step="0.01">
+        </label>
+        <label><span data-i18n="开始日期（留空 = 最早）">Start date (blank = earliest)</span>
+          <input type="date" id="startDateInput">
+        </label>
+        <label><span data-i18n="结束日期（留空 = 最新）">End date (blank = latest)</span>
+          <input type="date" id="endDateInput">
+        </label>
+        <button id="runBtn" class="primary" data-i18n="▶ 运行回测">▶ Run Backtest</button>
+        <button id="liveBtn" class="ghost" data-i18n="◉ 实时盯盘：开">◉ Live: ON</button>
+      </section>
+
+      <div class="hint">
+        <b data-i18n="快速上手">Quick start</b><br>
+        <span data-i18n="① 默认用「模拟数据」离线演示；">1) Default synthetic data works offline;</span><br>
+        <span data-i18n="② A股/期货/基金/美股可选真实行情（需联网）；">2) A-shares/futures/funds/US stocks need internet;</span><br>
+        <span data-i18n="③ 想自定义策略？在「AI 生成策略」里用一句话描述；">3) Describe a strategy in natural language via AI panel;</span><br>
+        <span data-i18n="④ 换策略/调参数后点「运行回测」；">4) Click Run Backtest after changing settings;</span><br>
+        <span data-i18n="⑤ 滚轮缩放 K 线，拖拽平移，悬停看细节。">5) Wheel = zoom, drag = pan, hover = details.</span>
+      </div>
+    </aside>
+
+    <!-- ======================= 主内容区 ======================= -->
+    <main class="content">
+      <!-- 实时信号条 -->
+      <section class="live-strip">
+        <div class="ls-item"><span class="k" data-i18n="标的">Symbol</span><span class="v" id="liveSymbol">--</span></div>
+        <div class="ls-item"><span class="k" data-i18n="最新价">Last</span><span class="v big" id="livePrice">81.49</span></div>
+        <div class="ls-item"><span class="k" data-i18n="涨跌">Change</span><span class="v down" id="liveChange">-0.4507%</span></div>
+        <div class="ls-item"><span class="k" data-i18n="最新信号">Signal</span><span class="v badge " id="liveAction">Flat</span></div>
+        <div class="ls-item"><span class="k" data-i18n="持仓状态">Position</span><span class="v" id="livePos">Flat</span></div>
+        <div class="ls-item"><span class="k" data-i18n="更新时间">Updated</span><span class="v" id="liveTs">2026-10-30 (signal)</span></div>
+      </section>
+
+      <!-- 指标卡片 -->
+      <section class="cards" id="metricCards">
+        <div class="card"><div class="ck" data-i18n="总收益">Total Return</div><div class="cv up" id="mTotal">+67.9%</div><div class="cs" id="mBench">Benchmark +8.67%</div></div>
+        <div class="card"><div class="ck" data-i18n="年化收益">CAGR</div><div class="cv up" id="mCagr">+29.85%</div><div class="cs" data-i18n="按周期年化">annualized</div></div>
+        <div class="card"><div class="ck" data-i18n="夏普比率">Sharpe</div><div class="cv" id="mSharpe">1.80</div><div class="cs" data-i18n="越高越稳">higher = steadier</div></div>
+        <div class="card"><div class="ck" data-i18n="最大回撤">Max Drawdown</div><div class="cv down" id="mMaxdd">-15.01%</div><div class="cs" data-i18n="风险指标">risk metric</div></div>
+        <div class="card"><div class="ck" data-i18n="交易次数">Trades</div><div class="cv" id="mTrades">11</div><div class="cs" data-i18n="买卖配对">paired trades</div></div>
+        <div class="card"><div class="ck" data-i18n="胜率">Win Rate</div><div class="cv" id="mWinrate">36.4%</div><div class="cs" data-i18n="盈利笔数占比">share of winners</div></div>
+        <div class="card"><div class="ck" data-i18n="盈亏比">Profit Factor</div><div class="cv" id="mPf">3.73</div><div class="cs" data-i18n="总盈 / 总亏">gross win / loss</div></div>
+        <div class="card"><div class="ck" data-i18n="平均单笔">Avg Trade</div><div class="cv up" id="mAvg">+5.95%</div><div class="cs" data-i18n="每笔交易收益">avg return per trade</div></div>
+      </section>
+
+      <!-- K线图 -->
+      <section class="chart-card">
+        <div class="chart-head">
+          <h3><span data-i18n="K 线图">Candlestick</span> <span id="klineTitle" class="sub">SYN:测试股票 · 1d · Dual MA Trend</span></h3>
+          <div class="legend" id="klineLegend"><span class="lg"><span class="sw" style="background:#ffb020"></span>MA5</span><span class="lg"><span class="sw" style="background:#ff7ab8"></span>MA10</span><span class="lg"><span class="sw" style="background:#4f8cff"></span>MA20</span><span class="lg"><span class="sw" style="background:#26a69a"></span>MA60</span><span class="lg"><span class="sw" style="background:#ffb020"></span>DIF</span><span class="lg"><span class="sw" style="background:#4f8cff"></span>DEA</span><span class="lg"><span class="sw" style="background:#ffb020"></span>K</span><span class="lg"><span class="sw" style="background:#4f8cff"></span>D</span><span class="lg"><span class="sw" style="background:#b388ff"></span>J</span><span class="lg"><span class="sw" style="background:#ef5350"></span>Buy</span><span class="lg"><span class="sw" style="background:#26a69a"></span>Sell</span></div>
+        </div>
+        <div class="ind-toggles" id="indToggles">
+          <button class="chip on" data-ind="ma">MA</button>
+          <button class="chip" data-ind="boll">BOLL</button>
+          <button class="chip on" data-ind="macd">MACD</button>
+          <button class="chip on" data-ind="kdj">KDJ</button>
+          <button class="chip" data-ind="rsi">RSI</button>
+          <span class="ind-note" data-i18n="价格图叠加 MA/BOLL · 副图 MACD/KDJ/RSI">Price overlays: MA/BOLL · Sub-charts: MACD/KDJ/RSI</span>
+        </div>
+        <div class="canvas-wrap" id="klineWrap"><canvas id="klineChart" width="672" height="380"></canvas></div>
+        <div class="chart-foot" data-i18n="滚轮缩放 · 拖拽平移 · 悬停查看 OHLC 与指标数值">Wheel zoom · drag pan · hover for OHLC &amp; indicators</div>
+      </section>
+
+      <!-- 两融资金 -->
+      <section class="chart-card" id="marginCard" hidden="">
+        <div class="chart-head">
+          <h3><span data-i18n="两融资金">Margin Trading</span> <span id="marginTitle" class="sub" data-i18n="融资余额 / 融券余额（亿元）">融资余额 / 融券余额（亿元）</span></h3>
+          <div class="legend" id="marginLegend"></div>
+        </div>
+        <div class="canvas-wrap short" id="marginWrap"><canvas id="marginChart"></canvas></div>
+        <div class="chart-foot" data-i18n="融资 = 借钱做多 · 融券 = 借券做空；数据来源：东方财富数据中心（仅 A股标的）">Financing = borrow cash to long · Sec-lending = borrow shares to short; data: Eastmoney (A-shares only)</div>
+      </section>
+
+      <!-- 净值曲线 -->
+      <section class="chart-card">
+        <div class="chart-head">
+          <h3><span data-i18n="净值曲线">Equity Curve</span> <span class="sub" data-i18n="策略 vs 买入持有">Strategy vs Buy&amp;Hold</span></h3>
+          <div class="legend" id="equityLegend"><span class="lg"><span class="sw" style="background:#4f8cff"></span>Strategy</span><span class="lg"><span class="sw" style="background:#8b949e"></span>Buy &amp; Hold</span></div>
+        </div>
+        <div class="canvas-wrap short" id="equityWrap"><canvas id="equityChart" width="672" height="220"></canvas></div>
+      </section>
+
+      <!-- 交易明细 -->
+      <section class="chart-card">
+        <div class="chart-head"><h3><span data-i18n="交易明细">Trades</span> <span id="tradeCount" class="sub">11 total</span></h3></div>
+        <div class="table-wrap">
+          <table id="tradeTable">
+            <thead>
+              <tr>
+                <th>#</th><th data-i18n="买入时间">Entry Time</th><th data-i18n="买入价">Entry</th><th data-i18n="卖出时间">Exit Time</th><th data-i18n="卖出价">Exit</th>
+                <th data-i18n="收益率">Return</th><th data-i18n="持有K线">Bars</th><th data-i18n="结果">Result</th>
+              </tr>
+            </thead>
+            <tbody><tr>
+      <td>11</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2026-09-25</td><td>39.4341</td>
+      <td>2026-10-02</td><td>37.0963</td>
+      <td class="down">-5.9884%</td>
+      <td>6</td>
+      <td><span class="tag loss">Loss</span></td></tr><tr>
+      <td>10</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2026-09-11</td><td>39.6707</td>
+      <td>2026-09-23</td><td>38.736</td>
+      <td class="down">-2.4161%</td>
+      <td>9</td>
+      <td><span class="tag loss">Loss</span></td></tr><tr>
+      <td>9</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2026-07-13</td><td>37.6717</td>
+      <td>2026-08-14</td><td>40.0623</td>
+      <td class="up">+6.2859%</td>
+      <td>25</td>
+      <td><span class="tag win">Win</span></td></tr><tr>
+      <td>8</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2026-05-25</td><td>41.4801</td>
+      <td>2026-06-04</td><td>39.9622</td>
+      <td class="down">-3.7193%</td>
+      <td>9</td>
+      <td><span class="tag loss">Loss</span></td></tr><tr>
+      <td>7</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2026-03-24</td><td>42.8074</td>
+      <td>2026-04-21</td><td>42.359</td>
+      <td class="down">-1.1075%</td>
+      <td>21</td>
+      <td><span class="tag loss">Loss</span></td></tr><tr>
+      <td>6</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2025-12-18</td><td>51.2486</td>
+      <td>2026-01-14</td><td>49.1265</td>
+      <td class="down">-4.2008%</td>
+      <td>20</td>
+      <td><span class="tag loss">Loss</span></td></tr><tr>
+      <td>5</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2025-11-26</td><td>50.4398</td>
+      <td>2025-12-09</td><td>50.091</td>
+      <td class="down">-0.7515%</td>
+      <td>10</td>
+      <td><span class="tag loss">Loss</span></td></tr><tr>
+      <td>4</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2025-08-27</td><td>39.7326</td>
+      <td>2025-11-14</td><td>48.7231</td>
+      <td class="up">+22.5675%</td>
+      <td>58</td>
+      <td><span class="tag win">Win</span></td></tr><tr>
+      <td>3</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2025-07-21</td><td>36.2948</td>
+      <td>2025-08-21</td><td>39.2384</td>
+      <td class="up">+8.0503%</td>
+      <td>24</td>
+      <td><span class="tag win">Win</span></td></tr><tr>
+      <td>2</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2025-02-20</td><td>27.003</td>
+      <td>2025-06-02</td><td>41.2024</td>
+      <td class="up">+52.5245%</td>
+      <td>73</td>
+      <td><span class="tag win">Win</span></td></tr><tr>
+      <td>1</td>
+      <td><span class="tag" style="background:rgba(239,83,80,.15);color:#ef5350">L</span> 2025-02-07</td><td>26.8059</td>
+      <td>2025-02-14</td><td>25.2645</td>
+      <td class="down">-5.8102%</td>
+      <td>6</td>
+      <td><span class="tag loss">Loss</span></td></tr></tbody>
+          </table>
+          <div id="tradeEmpty" class="empty" data-i18n="暂无交易" style="display: none;">No trades</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="">Backtest done: Dual MA Trend, return 67.9%</div>
+  <script src="charts.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+
+
+</body></html>

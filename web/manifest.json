@@ -1,0 +1,14 @@
+{
+  "name": "量化分析工作台 Quant Studio",
+  "short_name": "Quant Studio",
+  "description": "多市场量化回测、指标图与实时盯盘",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
